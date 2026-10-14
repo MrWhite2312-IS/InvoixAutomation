@@ -125,3 +125,43 @@ test('TC-025 Tax % above 100 is rejected [B-016]', async ({ page }) => {
   const value = Number(await tax(page).inputValue());
   expect(value).toBeLessThanOrEqual(100);
 });
+
+/* ---------------------------------------------------------------------------
+ * WORKAROUND TESTS (expected to PASS)
+ * Adding a blank line item forces the totals to refresh (see B-014 workaround).
+ * These confirm the calculation logic is right once the totals are refreshed, which
+ * isolates the defect to the refresh behavior. Tax is NOT asserted here because it
+ * is still wrong after the workaround (B-015).
+ * ------------------------------------------------------------------------- */
+test.describe('With the workaround (add a blank item to refresh totals)', () => {
+  test('TC-033 workaround: one item subtotal is correct after adding a blank item', async ({ page }) => {
+    await fillItem(page, 0, 2, 50);
+    await addItemRow(page); // workaround: blank row (Qty 1, Price 0)
+
+    const t = await readTotals(page);
+    expect(t.subtotal).toBe(100);
+  });
+
+  test('TC-023 workaround: subtotal sums multiple items after adding a blank item', async ({ page }) => {
+    await fillItem(page, 0, 2, 10);
+    await addItemRow(page);
+    await fillItem(page, 1, 1, 25.5);
+    await addItemRow(page);
+    await fillItem(page, 2, 3, 4);
+    await addItemRow(page); // workaround: blank row
+
+    const t = await readTotals(page);
+    expect(t.subtotal).toBe(57.5);
+  });
+
+  test('TC-016 workaround: removing an item recalculates after adding a blank item', async ({ page }) => {
+    await fillItem(page, 0, 1, 20);
+    await addItemRow(page);
+    await fillItem(page, 1, 1, 30);
+    await sel.removeItem(page, 0).click();
+    await addItemRow(page); // workaround: blank row
+
+    const t = await readTotals(page);
+    expect(t.subtotal).toBe(30);
+  });
+});
