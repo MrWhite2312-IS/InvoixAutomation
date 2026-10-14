@@ -1,0 +1,13 @@
+{
+  "name": "invoix-playwright-smoke",
+  "version": "1.0.0",
+  "description": "Playwright smoke tests for the Invoix invoice builder (QA assessment)",
+  "scripts": {
+    "test": "playwright test",
+    "test:xfail": "XFAIL=1 playwright test",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0"
+  }
+}
